@@ -1,66 +1,130 @@
-## Foundry
+#  Bagel Token Airdrop (Merkle Tree Based)
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This project contains **smart contracts for a token airdrop system** where **Bagel Tokens** are distributed only to eligible users.  
+Eligibility is verified using a **Merkle Tree**, and users can claim their tokens by submitting a valid **Merkle Proof**.
 
-Foundry consists of:
+The main goal of this project was to learn how **large airdrops can be done efficiently on-chain** without storing thousands of addresses in smart contract storage.
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+---
 
-## Documentation
+##  What this project does
 
-https://book.getfoundry.sh/
+- Distributes **Bagel Tokens** via an airdrop
+- Only addresses included in a **Merkle Tree** can claim tokens
+- Users prove eligibility using **Merkle Proofs**
+- Uses **OpenZeppelin’s MerkleProof library**
+- Prevents double-claiming
+- Gas-efficient and scalable
 
-## Usage
+---
 
-### Build
+##  How the Airdrop Works
 
-```shell
-$ forge build
-```
+### 1. Off-chain Merkle Tree Creation
+- A list of eligible user addresses (and amounts, if applicable) is created off-chain.
+- A **Merkle Tree** is generated from this list.
+- The **Merkle Root** is stored in the smart contract.
 
-### Test
+### 2. Claiming Tokens
+- A user calls the `claim()` function on the contract.
+- The user provides:
+  - Their address
+  - The amount they are eligible for (if required)
+  - A valid **Merkle Proof**
 
-```shell
-$ forge test
-```
+### 3. Verification
+- The contract uses **OpenZeppelin’s `MerkleProof`** library to verify:
+  - The address exists in the Merkle Tree
+  - The proof matches the stored Merkle Root
 
-### Format
+### 4. Token Distribution
+- If the proof is valid and the user hasn’t claimed before:
+  - Bagel Tokens are transferred to the user
+- The claim is marked as completed to prevent reuse
 
-```shell
-$ forge fmt
-```
+---
 
-### Gas Snapshots
+##  Why Use a Merkle Tree?
 
-```shell
-$ forge snapshot
-```
+Storing thousands of addresses on-chain is expensive.
 
-### Anvil
+Merkle Trees allow:
+- Storing **only one hash (Merkle Root)** on-chain
+- Users to prove eligibility with a short proof
+- Massive gas savings
+- Secure and verifiable claims
 
-```shell
-$ anvil
-```
+This approach is commonly used for **airdrops and allowlists**.
 
-### Deploy
+---
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+##  OpenZeppelin MerkleProof
 
-### Cast
+This project uses **OpenZeppelin’s `MerkleProof` contract**, which provides:
+- A safe and audited implementation
+- Efficient proof verification
+- Reduced risk of implementation bugs
 
-```shell
-$ cast <subcommand>
-```
+---
 
-### Help
+##  Tech Stack
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+- **Solidity** – Smart contract language
+- **EVM-compatible blockchain**
+- **OpenZeppelin Contracts**
+  - `MerkleProof`
+  - `ERC20`
+- **Foundry** – Development & testing
+
+---
+
+##  Important Parameters
+
+- **Merkle Root**  
+  The root hash of the Merkle Tree containing eligible addresses.
+
+- **Bagel Token Address**  
+  The ERC20 token being distributed.
+
+- **Claim Tracking**  
+  Mapping to ensure each address can claim only once.
+
+---
+
+##  Security Notes
+
+- Uses OpenZeppelin’s audited libraries
+- Prevents double-claims
+- No storage of large address lists on-chain
+- Users must provide valid Merkle proofs
+- All eligibility checks are done on-chain
+
+> ⚠️ Always verify Merkle Tree generation off-chain carefully, as incorrect tree construction can break claims.
+
+---
+
+##  Example Claim Flow
+
+- User address is included in the Merkle Tree
+- User generates a Merkle Proof off-chain
+- User calls `claim()` with the proof
+- Contract verifies the proof using `MerkleProof`
+- Bagel Tokens are transferred to the user
+  
+---
+
+##  Testing Ideas
+
+- Test valid claims
+- Test invalid proofs
+- Test double-claim prevention
+- Test incorrect amounts or addresses
+- Test Merkle root updates (if supported)
+
+---
+
+## 📄 License
+
+MIT License
+
+---
